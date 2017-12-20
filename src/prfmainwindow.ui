@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PrfMainWindow</class>
+ <widget class="QMainWindow" name="PrfMainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>491</width>
+    <height>363</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>QPrf - MCMC Sampler</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QLabel" name="label_2">
+      <property name="font">
+       <font>
+        <pointsize>18</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Welcome to QPrf!</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string>Please indicate the task you would like to perform:</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QCommandLinkButton" name="commandLinkButton">
+      <property name="text">
+       <string>Step 1. Generate Stage 2 Stimuli</string>
+      </property>
+      <property name="description">
+       <string>Premultiply raw visual stimuli with predefined set of Gaussians. This structure is used to accelerate response simulation in Monte Carlo procedure. The same dictionary will be used across all subjects that share stimulus.</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QCommandLinkButton" name="commandLinkButton_2">
+      <property name="text">
+       <string>Step 2. Perform Posterior Sampling</string>
+      </property>
+      <property name="description">
+       <string>This step will perform Markov Chain Monte Carlo (MCMC) sampling from posterior distribution of population receptive field (pRF) and hemodynamic (Balloon-Windkessel model) parameters according to Metropolis-Hastings scheme.</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QCommandLinkButton" name="commandLinkButton_3">
+      <property name="text">
+       <string>Step 3. Prepare Results for Visualization</string>
+      </property>
+      <property name="description">
+       <string>This procedure will integrate provided surface data (FreeSurfer format) with results of MCMC sampling and save such unified output as VTK file suitable for browsing using e.g. ParaView software (recommended).</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <spacer name="verticalSpacer">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>40</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item>
+     <widget class="QLabel" name="label_3">
+      <property name="text">
+       <string>Please note that QPrf requires working OpenCL drivers to be installed and works best when using GPU for acceleration.</string>
+      </property>
+      <property name="wordWrap">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>491</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu_Help">
+    <property name="title">
+     <string>&amp;Help</string>
+    </property>
+    <addaction name="action_About"/>
+   </widget>
+   <widget class="QMenu" name="menu_File">
+    <property name="title">
+     <string>&amp;File</string>
+    </property>
+    <addaction name="action_Quit"/>
+   </widget>
+   <widget class="QMenu" name="menu_Tools">
+    <property name="title">
+     <string>&amp;Tools</string>
+    </property>
+    <addaction name="actionOpen_CL_Config"/>
+    <addaction name="action_MAT_File_Converter"/>
+   </widget>
+   <addaction name="menu_File"/>
+   <addaction name="menu_Tools"/>
+   <addaction name="menu_Help"/>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <action name="action_About">
+   <property name="text">
+    <string>&amp;About</string>
+   </property>
+  </action>
+  <action name="action_Quit">
+   <property name="text">
+    <string>&amp;Quit</string>
+   </property>
+  </action>
+  <action name="actionOpen_CL_Config">
+   <property name="text">
+    <string>Open&amp;CL Config</string>
+   </property>
+  </action>
+  <action name="action_MAT_File_Converter">
+   <property name="text">
+    <string>&amp;MAT File Converter</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources/>
+ <connections/>
+</ui>
