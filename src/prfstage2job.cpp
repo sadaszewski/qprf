@@ -22,6 +22,7 @@
 #include "prftypecastarray.h"
 
 #include <math.h>
+#include <cmath>
 
 using namespace Prf;
 
@@ -536,7 +537,7 @@ void PrfStage2Job::run() {
     }
 
     {
-        size_t dims[2] = {TOT_DUR, xs.size()};
+        size_t dims[2] = {(size_t) TOT_DUR, (size_t) xs.size()};
 
         for (int i = 0; i < reduced.size(); i++)
             if (std::isnan(reduced[i])) reduced[i] = 0;
@@ -555,7 +556,7 @@ void PrfStage2Job::run() {
 
     {
         size_t dims[2] = {1, 3};
-        float x_range[3] = {m_XStart, m_XEnd, m_XStep};
+        float x_range[3] = {(float) m_XStart, (float) m_XEnd, (float) m_XStep};
         QSharedPointer<matvar_t> mat_x_range(Mat_VarCreate("x_range", MAT_C_SINGLE, MAT_T_SINGLE, 2, &dims[0], &x_range[0], MAT_F_GLOBAL), var_deleter);
         if (mat_x_range.isNull()) {
             setError("Failed to create x_range variable.");
@@ -570,7 +571,7 @@ void PrfStage2Job::run() {
 
     {
         size_t dims[2] = {1, 3};
-        float y_range[3] = {m_YStart, m_YEnd, m_YStep};
+        float y_range[3] = {(float) m_YStart, (float) m_YEnd, (float) m_YStep};
         QSharedPointer<matvar_t> mat_y_range(Mat_VarCreate("y_range", MAT_C_SINGLE, MAT_T_SINGLE, 2, &dims[0], &y_range[0], MAT_F_GLOBAL), var_deleter);
         if (mat_y_range.isNull()) {
             setError("Failed to create y_range variable.");
@@ -585,7 +586,7 @@ void PrfStage2Job::run() {
 
     {
         size_t dims[2] = {1, 3};
-        float rfsize_range[3] = {m_RFSizeStart, m_RFSizeEnd, m_RFSizeStep};
+        float rfsize_range[3] = {(float) m_RFSizeStart, (float) m_RFSizeEnd, (float) m_RFSizeStep};
         QSharedPointer<matvar_t> mat_rfsize_range(Mat_VarCreate("rfsize_range", MAT_C_SINGLE, MAT_T_SINGLE, 2, &dims[0], &rfsize_range[0], MAT_F_GLOBAL), var_deleter);
         if (mat_rfsize_range.isNull()) {
             setError("Failed to create rfsize_range variable.");
@@ -627,7 +628,7 @@ void PrfStage2Job::run() {
     }
 
     {
-        size_t dims[2] = {xs.size(), 1};
+        size_t dims[2] = {(size_t) xs.size(), 1};
         QSharedPointer<matvar_t> mat_xs(Mat_VarCreate("xs", MAT_C_SINGLE, MAT_T_SINGLE, 2, &dims[0], &xs[0], MAT_F_GLOBAL));
         if (mat_xs.isNull()) {
             setError("Failed to create mat_xs variable.");
@@ -640,7 +641,7 @@ void PrfStage2Job::run() {
     }
 
     {
-        size_t dims[2] = {ys.size(), 1};
+        size_t dims[2] = {(size_t) ys.size(), 1};
         QSharedPointer<matvar_t> mat_ys(Mat_VarCreate("ys", MAT_C_SINGLE, MAT_T_SINGLE, 2, &dims[0], &ys[0], MAT_F_GLOBAL));
         if (mat_ys.isNull()) {
             setError("Failed to create mat_ys variable.");
@@ -653,7 +654,7 @@ void PrfStage2Job::run() {
     }
 
     {
-        size_t dims[2] = {rfsizes.size(), 1};
+        size_t dims[2] = {(size_t) rfsizes.size(), 1};
         QSharedPointer<matvar_t> mat_rfsizes(Mat_VarCreate("rfsizes", MAT_C_SINGLE, MAT_T_SINGLE, 2, &dims[0], &rfsizes[0], MAT_F_GLOBAL));
         if (mat_rfsizes.isNull()) {
             setError("Failed to create mat_rfsizes variable.");
@@ -673,14 +674,14 @@ void PrfStage2Job::run() {
         clWaitForEvents(1, &ev);
         clReleaseEvent(ev);
 
-        size_t dims[3] = {W, H, ntasks}; // xs.size()};
+        size_t dims[3] = {(size_t) W, (size_t) H, (size_t) ntasks}; // xs.size()};
         matvar_t *var = Mat_VarCreate("gaussians", MAT_C_SINGLE, MAT_T_SINGLE, 3, dims, &gaussians[0], MAT_F_GLOBAL);
         Mat_VarWrite(outmat.data(), var, MAT_COMPRESSION_ZLIB);
         Mat_VarFree(var);
     }
 
     {
-        size_t dims[3] = {W, H, TOT_DUR};
+        size_t dims[3] = {(size_t) W, (size_t) H, (size_t) TOT_DUR};
         matvar_t *var = Mat_VarCreate("stimulus", MAT_C_SINGLE, MAT_T_SINGLE, 3, dims, &stimulus[0], MAT_F_GLOBAL);
         Mat_VarWrite(outmat.data(), var, MAT_COMPRESSION_ZLIB);
         Mat_VarFree(var);

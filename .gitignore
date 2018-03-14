@@ -27,3 +27,6 @@
 *.exe
 *.out
 *.app
+
+moc_*.cpp
+ui_*.h

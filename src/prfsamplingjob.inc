@@ -1492,7 +1492,7 @@ void PRF_SAMPLING_JOB_CLS_NAME::run() {
 #ifdef BALLOON_3PARAM
         epsilons.append(m_EpsilonMean);
 #else // BALLOON_3PARAM
-        gammas.append(m_GammaMean);   
+        gammas.append(m_GammaMean);
         grubbs.append(m_GrubbMean);
         rhos.append(m_RhoMean);
 #endif // BALLOON_3PARAM
@@ -1594,7 +1594,7 @@ void PRF_SAMPLING_JOB_CLS_NAME::run() {
 #ifdef BALLOON_3PARAM
             clEnqueueWriteBuffer(queue.data(), g_epsilons.data(), false, 0, sizeof(float) * n, &epsilons[k], 0, NULL, NULL);
 #else // BALLOON_3PARAM
-            clEnqueueWriteBuffer(queue.data(), g_gammas.data(), false, 0, sizeof(float) * n, &gammas[k], 0, NULL, NULL);       
+            clEnqueueWriteBuffer(queue.data(), g_gammas.data(), false, 0, sizeof(float) * n, &gammas[k], 0, NULL, NULL);
             clEnqueueWriteBuffer(queue.data(), g_grubbs.data(), false, 0, sizeof(float) * n, &grubbs[k], 0, NULL, NULL);
             clEnqueueWriteBuffer(queue.data(), g_rhos.data(), false, 0, sizeof(float) * n, &rhos[k], 0, NULL, NULL);
 #endif // BALLOON_3PARAM
@@ -1604,7 +1604,7 @@ void PRF_SAMPLING_JOB_CLS_NAME::run() {
             clEnqueueWriteBuffer(queue.data(), g_noise_stdevs.data(), false, 0, sizeof(float) * n, &noise_stdevs[k], 0, NULL, NULL);
             clEnqueueBarrier(queue.data());
 
-            size_t global_work_size[] = {n};
+            size_t global_work_size[] = {(size_t) n};
             size_t local_work_size[] = {1};
 
             if (clEnqueueNDRangeKernel(queue.data(), reset.data(), 1, NULL, &global_work_size[0], NULL, 0, NULL, NULL) != CL_SUCCESS) {
@@ -1942,7 +1942,7 @@ int PRF_SAMPLING_JOB_CLS_NAME::write_var(mat_t *mat, const char *varname, float 
         setError("Trying to write variable to invalid file descriptor.");
         return -1;
     }
-    size_t dims[] = {dim0, dim1};
+    size_t dims[] = {(size_t) dim0, (size_t) dim1};
     matvar_t *var = Mat_VarCreate(varname, MAT_C_SINGLE, MAT_T_SINGLE, 2, &dims[0], data, MAT_F_GLOBAL);
     if (var == NULL) {
         setError(QString("Failed to create variable %1").arg(varname));
@@ -1961,14 +1961,14 @@ int PRF_SAMPLING_JOB_CLS_NAME::write_cell_vector(mat_t *mat, const char *varname
         setError("Trying to write variable to invalid file descriptor.");
         return -1;
     }
-    size_t dims[] = {data.size(), 1};
+    size_t dims[] = {(size_t) data.size(), 1};
     matvar_t *var = Mat_VarCreate(varname, MAT_C_CELL, MAT_T_CELL, 2, &dims[0], NULL, MAT_F_GLOBAL);
     if (var == NULL) {
         setError(QString("Failed to create variable %1").arg(varname));
         return -2;
     }
     for (int i = 0; i < data.size(); i++) {
-        size_t dims[] = {data[i].size(), 1};
+        size_t dims[] = {(size_t) data[i].size(), 1};
         matvar_t *cell = Mat_VarCreate(NULL, MAT_C_SINGLE, MAT_T_SINGLE, 2, &dims[0], (void*) data[i].data(), 0);
         if (cell == NULL) {
             setError(QString("Failed to create cell in variable %1").arg(varname));
