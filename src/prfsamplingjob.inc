@@ -1,10 +1,3 @@
-//
-// Copyright (C) Stanislaw Adaszewski, 2016-2017
-// All Rights Reserved.
-// Website: http://adared.ch
-// Email: info@adared.ch
-//
-
 #define _USE_MATH_DEFINES
 
 #include "prfsamplingjob_canonical.h"
@@ -85,9 +78,6 @@ static const char *OPENCL_HDR = "#define SUBDIV %1 \n\
     #define GAUSS_RFSIZE_STEP %11 \n\
     #define GAUSS_RFSIZE_COUNT %12 \n\
     \n\
-    #define W %13 \n\
-    #define H %14 \n\
-    \n\
     #define GAUSS_OFFSET(x, y, rfsize) \\\n\
         (((x * GAUSS_Y_COUNT + y) * GAUSS_RFSIZE_COUNT + rfsize) * TOT_DUR) \n\n";
 
@@ -104,29 +94,6 @@ static const char *OPENCL_BODY = "__kernel void reset(__global float *signals,  
     deoxys[id] = 1.0f;                                                               \n\
 }                                                                                    \n\
                                                                                      \n\
-void sim_gauss_prod(__global float *stimulus,                                        \n\
-    float u_x, float u_y, float rfsize,                                              \n\
-    float *ret) {                                                                    \n\
-                                                                                     \n\
-    float sigma_2 = rfsize * rfsize;                                                 \n\
-    int ofs = 0;                                                                     \n\
-    float pdf;                                                                       \n\
-    float tmp;                                                                       \n\
-    float accum;                                                                     \n\
-                                                                                     \n\
-    for (int t = 0; t < TOT_DUR; t++) {                                              \n\
-        accum = 0;                                                                   \n\
-        for (int y = 0; y < H; y++) {                                                \n\
-            for (int x = 0; x < W; x++) {                                            \n\
-                tmp = -0.5 * (pow(x - u_x, 2) / sigma_2 + pow(y - u_y, 2) / sigma_2);    \n\
-                pdf = exp(tmp) / (2 * M_PI * sigma_2);                               \n\
-                accum += pdf * stimulus[ofs];                                        \n\
-                ofs++;                                                               \n\
-            }                                                                        \n\
-         }                                                                           \n\
-         ret[t] = accum;                                                             \n\
-     }                                                                               \n\
-}                                                                                    \n\
                                                                                      \n\
 void interp_gaussian(float x, float y, float rfsize,                                 \n\
     __global float *gaussians,                                                       \n\
@@ -213,7 +180,7 @@ void unit_length(float *A, int nA) {                                            
 }                                                                                    \n\
                                                                                      \n\
                                                                                      \n\
-__kernel void fwd_model(__global float *stimulus,                                    \n\
+__kernel void fwd_model(__global float *stage2,                                      \n\
     __global float *pmatrix,                                                         \n\
                                                                                      \n\
     __global float *xs,                                                              \n\
@@ -266,7 +233,7 @@ __kernel void fwd_model(__global float *stimulus,                               
     float z[DUR];                                                                    \n\
     float Y[DUR];                                                                    \n\
                                                                                      \n\
-    sim_gauss_prod(stimulus, u_x, u_y, rfsize, z);                                   \n\
+    interp_gaussian(u_x, u_y, rfsize, stage2, z);                                    \n\
                                                                                      \n\
     for (int n = 0; n < NSTEPS; n++) {                                               \n\
         int t = (int) (n / SUBDIV);                                                  \n\
@@ -278,12 +245,12 @@ __kernel void fwd_model(__global float *stimulus,                               
         dv = (f - pow(v, (1 / grubb))) / tau;                                        \n\
                                                                                      \n\
         dq = (f * (1 - pow((1 - rho), (1 / f))) / rho - pow(v, (1 / grubb)) * q / v) / tau; \n\
-                                                                                     \n""\
+                                                                                     \n\
         s += ds * TSTEP;                                                             \n\
         f += df * TSTEP;                                                             \n\
         v += dv * TSTEP;                                                             \n\
         q += dq * TSTEP;                                                             \n\
-    }                                                                                \n""\
+    }                                                                                \n\
 #ifdef DUMOULIN_WANDELL                                                              \n\
     for (int t = 0; t < DUR; t++) {                                                  \n\
         Y[t] = Y[t] * gain;                                                          \n\
@@ -387,7 +354,7 @@ __kernel void eval_proposal(__global float *Ys,                                 
 "}                                                                                   \n"
 "                                                                                    \n"
 "__kernel void fwd_model_canonical(                                                  \n"
-"    __global float *stimulus,                                                       \n"
+"    __global float *stage2,                                                         \n"
 "    __global float *pmatrix,                                                        \n"
 "    __global float *xs,                                                             \n"
 "    __global float *ys,                                                             \n"
@@ -409,7 +376,7 @@ __kernel void eval_proposal(__global float *Ys,                                 
 "    float z[DUR];                                                                   \n"
 "    float Y[TOT_DUR];                                                               \n"
 "                                                                                    \n"
-"    sim_gauss_prod(stimulus, u_x, u_y, rfsize, z);                                  \n"
+"    interp_gaussian(u_x, u_y, rfsize, stage2, z);                                   \n"
 "                                                                                    \n"
 "    // do convolution with HRF                                                      \n"
 "    for (int i = 0; i < TOT_DUR; i++) {                                             \n"
@@ -455,7 +422,7 @@ __kernel void eval_proposal(__global float *Ys,                                 
 "                                                                                    \n"
 #ifdef BALLOON_3PARAM
 "__kernel void fwd_model_3param(                                                     \n"
-"    __global float *stimulus,                                                       \n"
+"    __global float *stage2,                                                         \n"
 "    __global float *pmatrix,                                                        \n"
 "    __global float *xs,                                                             \n"
 "    __global float *ys,                                                             \n"
@@ -506,7 +473,7 @@ __kernel void eval_proposal(__global float *Ys,                                 
 "    float z[DUR];                                                                   \n"
 "    float Y[DUR];                                                                   \n"
 "                                                                                    \n"
-"    sim_gauss_prod(stimulus, u_x, u_y, rfsize, z);                                  \n"
+"    interp_gaussian(u_x, u_y, rfsize, stage2, z);                                   \n"
 "    for (int n = 0; n < NSTEPS; n++) {                                              \n"
 "        int t = (int) (n / SUBDIV);                                                 \n"
 "                                                                                    \n"
@@ -871,19 +838,6 @@ void PRF_SAMPLING_JOB_CLS_NAME::run() {
         return;
     }
 
-    matvar_t *mat_top_stimulus = NULL;
-    matvar_t *mat_stimulus = QMatFileModel::resolveVariableSpec(data_mat.data(), "stimulus{0,0}", &mat_top_data);
-    QSharedPointer<matvar_t> _mat_top_stimulus(mat_top_stimulus, var_deleter);
-    Q_UNUSED(_mat_top_stimulus);
-    if (mat_stimulus == NULL) {
-        setError("Failed to resolve stimulus variable.");
-        return;
-    }
-    if (Mat_VarReadDataAll(data_mat.data(), mat_stimulus) != 0) {
-        setError("Failed to read stimulus variable.");
-        return;
-    }
-
     matvar_t *mat_top_initial = NULL;
     matvar_t *mat_initial = QMatFileModel::resolveVariableSpec(data_mat.data(), "results", &mat_top_initial);
     QSharedPointer<matvar_t> _mat_top_initial(mat_top_initial, var_deleter);
@@ -1026,22 +980,6 @@ void PRF_SAMPLING_JOB_CLS_NAME::run() {
         }
     }
 
-    int TOT_DUR = mat_stimulus->dims[2];
-    QVector<float> stimulus_single(H * W * TOT_DUR);
-    {
-        int ofs = 0;
-        QSharedPointer<Prf::TypeCastArrayBase> cast(Prf::TypeCastArrayFactory::create(mat_stimulus->class_type, mat_stimulus->data));
-        for (int t = 0; t < TOT_DUR; t++) { // TOT_DUR
-            for (int x = 0; x < W; x++) { // W
-                for (int y = 0; y < H; y++) { // H
-                    // we want it to be TOT_DUR, H, W
-                    stimulus_single[((t * H) + y) * W + x] = cast->asFloat(ofs);
-                    ofs++;
-                }
-            }
-        }
-    }
-
     cl_device_id dev_id;
     QSharedPointer<struct _cl_context> ctx = PrfCommon::create_cl_context(dev_id, m_Error);
     if (ctx.isNull()) {
@@ -1050,7 +988,7 @@ void PRF_SAMPLING_JOB_CLS_NAME::run() {
     }
 
     int ntasks = PrfCommon::get_ntasks();
-    // int TOT_DUR = mat_reduced->dims[0];
+    int TOT_DUR = mat_reduced->dims[0];
     qDebug() << "TOT_DUR:" << TOT_DUR;
 
     QSharedPointer<struct _cl_command_queue> queue(clCreateCommandQueue(ctx.data(), dev_id, NULL, NULL), queue_deleter);
@@ -1187,12 +1125,6 @@ void PRF_SAMPLING_JOB_CLS_NAME::run() {
         return;
     }
 
-    QSharedPointer<struct _cl_mem> g_stimulus(clCreateBuffer(ctx.data(), CL_MEM_READ_ONLY, sizeof(float) * TOT_DUR * W * H, NULL, NULL), buffer_deleter);
-    if (g_stimulus.isNull()) {
-        setError("Failed to create g_stimulus buffer.");
-        return;
-    }
-
     QSharedPointer<struct _cl_mem> g_logprobs(clCreateBuffer(ctx.data(), CL_MEM_WRITE_ONLY, sizeof(float) * ntasks, NULL, NULL), buffer_deleter);
     if (g_logprobs.isNull()) {
         setError("Failed to create g_logprobs buffer.");
@@ -1218,8 +1150,7 @@ void PRF_SAMPLING_JOB_CLS_NAME::run() {
         .arg(m_TR, 0, 'f', 10)
         .arg(x_range[0]).arg(x_range[2]).arg(x_len)
         .arg(y_range[0]).arg(y_range[2]).arg(y_len)
-        .arg(rfsize_range[0]).arg(rfsize_range[2]).arg(rfsize_len)
-        .arg(W).arg(H);
+        .arg(rfsize_range[0]).arg(rfsize_range[2]).arg(rfsize_len);
 
     if (m_pRF_Model == DUM_WAN) {
         hdr += "\n#define DUMOULIN_WANDELL\n";
@@ -1299,7 +1230,7 @@ void PRF_SAMPLING_JOB_CLS_NAME::run() {
     clSetKernelArg(reset.data(), 3, sizeof(cl_mem), &(tmp = g_deoxys.data()));
 #endif
 
-    clSetKernelArg(fwd_model.data(), 0, sizeof(cl_mem), &(tmp = g_stimulus.data()));
+    clSetKernelArg(fwd_model.data(), 0, sizeof(cl_mem), &(tmp = g_stage2.data()));
     clSetKernelArg(fwd_model.data(), 1, sizeof(cl_mem), &(tmp = g_pmatrix.data()));
 
     clSetKernelArg(fwd_model.data(), 2, sizeof(cl_mem), &(tmp = g_xs.data()));
@@ -1356,13 +1287,6 @@ void PRF_SAMPLING_JOB_CLS_NAME::run() {
         sizeof(float) * TOT_DUR * x_len * y_len * rfsize_len, mat_reduced->data, 0, NULL, NULL) != CL_SUCCESS) {
 
         setError("Failed to enqueue g_stage2 buffer write.");
-        return;
-    }
-
-    if (clEnqueueWriteBuffer(queue.data(), g_stimulus.data(), false, 0,
-        sizeof(float) * TOT_DUR * W * H, &stimulus_single[0], 0, NULL, NULL) != CL_SUCCESS) {
-
-        setError("Failed to enqueue g_stimulus buffer write.");
         return;
     }
 
@@ -1837,7 +1761,6 @@ void PRF_SAMPLING_JOB_CLS_NAME::run() {
             if (write_var(mcmc_debug_mat, "data_single", &data_single[0], TOT_DUR, nvoxels)) return;
             if (write_var(mcmc_debug_mat, "logprobs", &logprobs[0], 1, nvoxels)) return;
             if (write_var(mcmc_debug_mat, "noise_stdevs", &noise_stdevs[0], 1, nvoxels)) return;
-            if (write_var(mcmc_debug_mat, "stimulus_single", &stimulus_single[0], W, H * TOT_DUR));
             Mat_Close(mcmc_debug_mat);
             qDebug() << "Writing mcmc_debug.mat took:" << (QDateTime::currentMSecsSinceEpoch() - time_1) << "ms";
         }
