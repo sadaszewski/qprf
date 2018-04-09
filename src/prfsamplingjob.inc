@@ -1168,7 +1168,7 @@ void PRF_SAMPLING_JOB_CLS_NAME::run() {
         return;
     }
 
-    if (clBuildProgram(program.data(), 1, &dev_id, "-Werror -cl-std=CL1.2", NULL, NULL) != CL_SUCCESS) {
+    if (clBuildProgram(program.data(), 1, &dev_id, "-cl-std=CL1.2", NULL, NULL) != CL_SUCCESS) {
         setError("Failed to build program.");
         size_t sz;
         clGetProgramBuildInfo(program.data(), dev_id, CL_PROGRAM_BUILD_LOG, 0, NULL, &sz);
