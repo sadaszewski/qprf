@@ -1904,6 +1904,7 @@ int PRF_SAMPLING_JOB_CLS_NAME::write_cell_vector(mat_t *mat, const char *varname
         setError(QString("Failed to write variable %1").arg(varname));
         return -4;
     }
+    return 0;
 }
 
 int PRF_SAMPLING_JOB_CLS_NAME::save_samples(const char *varname, const QVector<QVector<float> > &data) {
