@@ -30,3 +30,14 @@
 
 moc_*.cpp
 ui_*.h
+
+.DS_Store
+/build-debug/
+/build-release/
+.qmake.stash
+moc_*
+*.pro.user
+mcmc_results.mat
+starting_debug.mat
+Makefile
+/test/
