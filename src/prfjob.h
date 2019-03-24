@@ -9,6 +9,7 @@
 #define PRFJOB_H
 
 #include <QThread>
+#include <QJsonDocument>
 
 class QString;
 
@@ -19,6 +20,8 @@ public:
     virtual const QString& error() const = 0;
     virtual QString status() const = 0;
     virtual QString parameters() const = 0;
+    virtual QJsonDocument toJson() const = 0;
+    virtual bool fromJson(const QJsonDocument&) = 0;
 
 signals:
     void jobStarted(PrfJob*);

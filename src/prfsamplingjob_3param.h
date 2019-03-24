@@ -54,6 +54,9 @@ public:
     void saveConfig(const QString&);
     void loadConfig(const QString&);
 
+    QJsonDocument toJson() const;
+    bool fromJson(const QJsonDocument &);
+
 protected:
     void run();
 

@@ -41,3 +41,7 @@ mcmc_results.mat
 starting_debug.mat
 Makefile
 /test/
+__pycache__
+qmake_stash_*
+/src/test.json
+

@@ -13,6 +13,7 @@
 #include <QDebug>
 #include <QFileInfo>
 #include <QDir>
+#include <QJsonObject>
 
 #include <OpenCL/opencl.h>
 
@@ -32,7 +33,11 @@ static const char *OPENCL_HDR = "#define H %1 \n\
         #define TOT_DUR %3\n\
         #define DUR 1";
 
-static const char *OPENCL_BODY = "__kernel void make_gaussians_no_limit( \n\
+static const char *OPENCL_BODY = "#ifndef M_PI\n\
+#define M_PI 3.14159265358979323846\n\
+#endif\n\
+    \n\
+    __kernel void make_gaussians_no_limit( \n\
     \n\
     __global float *xs, \n\
     __global float *ys, \n\
@@ -47,7 +52,6 @@ static const char *OPENCL_BODY = "__kernel void make_gaussians_no_limit( \n\
     int ofs = id * W * H; \n\
     float u_x = xs[id]; \n\
     float u_y = ys[id]; \n\
-    float rfsize = rfsizes[id]; \n\
     float sigma_2 = pow(rfsizes[id], 2);  \n\
     \n\
     \n\
@@ -178,6 +182,76 @@ void PrfStage2Job::loadConfig(const QString &fname) {
     m_XStep = config.value("stage2/xStep").toInt();
     m_YStep = config.value("stage2/yStep").toInt();
     m_RFSizeStep = config.value("stage2/rfSizeStep").toInt();
+}
+
+QJsonDocument PrfStage2Job::toJson() const {
+    QJsonObject job;
+    job["job_type"] = "generate_lookup_table";
+
+    QJsonObject params;
+    params["input_filename"] = m_InputFileName;
+    params["variable_spec"] = m_VariableSpec;
+    params["output_filename"] = m_OutputFileName;
+
+    QJsonObject x_range;
+    x_range["start"] = m_XStart;
+    x_range["end"] = m_XEnd;
+    x_range["step"] = m_XStep;
+    params["x_range"] = x_range;
+
+    QJsonObject y_range;
+    y_range["start"] = m_YStart;
+    y_range["end"] = m_YEnd;
+    y_range["step"] = m_YStep;
+    params["y_range"] = y_range;
+
+    QJsonObject rfsize_range;
+    rfsize_range["start"] = m_RFSizeStart;
+    rfsize_range["end"] = m_RFSizeEnd;
+    rfsize_range["step"] = m_RFSizeStep;
+    params["rfsize_range"] = rfsize_range;
+
+    job["job_params"] = params;
+
+    QJsonObject res;
+    res["qprf_job"] = job;
+
+    QJsonDocument doc(res);
+
+    return doc;
+}
+
+bool PrfStage2Job::fromJson(const QJsonDocument &doc) {
+    if (!doc.isObject())
+        return false;
+
+    QJsonObject res = doc.object();
+
+    QJsonObject job = res["qprf_job"].toObject();
+    if (job["job_type"] != "generate_lookup_table")
+        return false;
+
+    QJsonObject params = job["job_params"].toObject();
+    m_InputFileName = params["input_filename"].toString();
+    m_VariableSpec = params["variable_spec"].toString();
+    m_OutputFileName = params["output_filename"].toString();
+
+    QJsonObject x_range = params["x_range"].toObject();
+    m_XStart = x_range["start"].toInt();
+    m_XEnd = x_range["end"].toInt();
+    m_XStep = x_range["step"].toInt();
+
+    QJsonObject y_range = params["y_range"].toObject();
+    m_YStart = y_range["start"].toInt();
+    m_YEnd = y_range["end"].toInt();
+    m_YStep = y_range["step"].toInt();
+
+    QJsonObject rfsize_range = params["rfsize_range"].toObject();
+    m_RFSizeStart = rfsize_range["start"].toInt();
+    m_RFSizeEnd = rfsize_range["end"].toInt();
+    m_RFSizeStep = rfsize_range["step"].toInt();
+
+    return true;
 }
 
 const QString& PrfStage2Job::error() const {

@@ -10,6 +10,7 @@
 
 #include <QObject>
 #include <QThread>
+#include <QJsonDocument>
 
 #include "prfjob.h"
 
@@ -37,6 +38,9 @@ public:
 
     void saveConfig(const QString&);
     void loadConfig(const QString&);
+
+    QJsonDocument toJson() const;
+    bool fromJson(const QJsonDocument&);
 
     const QString& error() const;
     QString status() const;

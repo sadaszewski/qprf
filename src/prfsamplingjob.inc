@@ -30,6 +30,7 @@
 #include <QDateTime>
 #include <QFileInfo>
 #include <QDir>
+#include <QJsonObject>
 
 #include <random>
 
@@ -751,6 +752,66 @@ void PRF_SAMPLING_JOB_CLS_NAME::loadConfig(const QString &fname) {
 #endif // BALLOON_3PARAM
 
 #endif // CANONICAL_HRF
+}
+
+QJsonDocument PRF_SAMPLING_JOB_CLS_NAME::toJson() const {
+    return QJsonDocument();
+}
+
+bool PRF_SAMPLING_JOB_CLS_NAME::fromJson(const QJsonDocument &doc) {
+
+    if (!doc.isObject())
+        return false;
+
+    QJsonObject res = doc.object();
+
+    QJsonObject job = res["qprf_job"].toObject();
+
+    if (job["job_type"].toString().startsWith("perform_sampling_"))
+        return false;
+
+    QJsonObject params = job["job_params"].toObject();
+
+    if (params["prf_model"].toString() == "CSS_PRF")
+        m_pRF_Model = CSS_PRF;
+    else if (params["prf_model"].toString() == "DUM_WAN")
+        m_pRF_Model = DUM_WAN;
+    else
+        return false;
+
+    m_DataFileName = params["data_file_name"].toString();
+    m_DataVariableSpec = params["data_variable_spec"].toString();
+    m_Stage2FileName = params["lookup_table_filename"].toString();
+    m_NumberOfSteps = params["number_of_steps"].toInt();
+    m_Temperature = params["temperature"].toDouble();
+
+    m_XStdev = params["x_stdev"].toDouble();
+    m_YStdev = params["y_stdev"].toDouble();
+    m_RFSizeStdev = params["rfsize_stdev"].toDouble();
+    if (m_pRF_Model == CSS_PRF) {
+        m_ExptStdev = params["expt_stdev"].toDouble();
+    }
+    m_GainStdev = params["gain_stdev"].toDouble();
+
+#ifdef CANONICAL_HRF
+#else
+    m_SubDiv = params["subdiv"].toInt();
+    m_KappaStdev = params["kappa_stdev"].toDouble();
+    m_TauStdev = params["tau_stdev"].toDouble();
+    m_TR = params["time_repeat"].toDouble();
+
+#ifdef BALLOON_3PARAM
+    m_EpsilonStdev = params["epsilon_stdev"].toDouble();
+    m_TE = params["time_echo"].toDouble();
+#else // BALLOON_3PARAM
+    m_GammaStdev = params["gamma_stdev"].toDouble();
+    m_GrubbStdev = params["grubb_stdev"].toDouble();
+    m_RhoStdev = params["rho_stdev"].toDouble();
+#endif // BALLOON_3PARAM
+
+#endif // CANONICAL_HRF
+
+    return true;
 }
 
 static void mat_deleter(mat_t *mat) {
