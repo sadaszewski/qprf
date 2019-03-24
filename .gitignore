@@ -44,4 +44,4 @@ Makefile
 __pycache__
 qmake_stash_*
 /src/test.json
-
+*.pyc
