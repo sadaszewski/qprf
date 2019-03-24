@@ -173,7 +173,7 @@ int MainCmdLine::process() {
     }
 
     QString jobFilename = parser.value("run-job");
-    // cerr << "jobFilename: " << jobFilename.toStdString() << endl;
+    cerr << "jobFilename: " << jobFilename.toStdString() << endl;
     if (jobFilename.isEmpty()) {
         cerr << "No job specified. Exiting." << endl;
         return -1;

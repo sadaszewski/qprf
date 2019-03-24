@@ -17,11 +17,14 @@ def generate_lookup_table(input_filename,
     device=0, ntasks=512, qprf_binary='qprf',
     delete_spec=True):
 
-    params = dict(locals())
-    del params['device']
-    del params['ntasks']
-    del params['qprf_binary']
-    del params['delete_spec']
+    params = {
+        'input_filename': input_filename,
+        'variable_spec': variable_spec,
+        'output_filename': output_filename,
+        'x_range': { 'start': x_start, 'end': x_end, 'step': x_step },
+        'y_range': { 'start': y_start, 'end': y_end, 'step': y_step },
+        'rfsize_range': { 'start': rfsize_start, 'end': rfsize_end, 'step': rfsize_step }
+    }
 
     spec = {'qprf_job': {'job_type': 'generate_lookup_table',
         'job_params': params } }
